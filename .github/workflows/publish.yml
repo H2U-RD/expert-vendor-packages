@@ -1,0 +1,33 @@
+name: Publish artifacts to GitHub Packages
+
+on:
+  push:
+    branches: [main]
+    paths: ["artifacts/**", "scripts/**", ".github/workflows/publish.yml"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v5
+        with:
+          java-version: "8"
+          distribution: temurin
+          cache: maven
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+
+      - name: Publish every artifact under artifacts/
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/publish.py
